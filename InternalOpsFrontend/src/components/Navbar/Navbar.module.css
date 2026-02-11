@@ -1,0 +1,24 @@
+.navbar {
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+}
+
+.link,
+.activeLink {
+    color: var(--foreground);
+    transition: color 0.3s ease;
+    cursor: pointer;
+}
+
+.link:hover,
+.activeLink:hover {
+    color: var(--accent)
+}
+
+.activeLink {
+    font-weight: 900;
+}
