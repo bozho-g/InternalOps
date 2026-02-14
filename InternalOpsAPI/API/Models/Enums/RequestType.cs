@@ -4,6 +4,7 @@
     {
         Equipment,
         Leave,
-        Task
+        Task,
+        Bug
     }
 }

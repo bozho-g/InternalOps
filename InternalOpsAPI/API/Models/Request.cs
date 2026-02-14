@@ -21,7 +21,7 @@
         public required string RequestedById { get; set; }
         public string? HandledById { get; set; }
 
-        public required User RequestedBy { get; set; }
+        public User? RequestedBy { get; set; }
         public User? HandledBy { get; set; }
 
         public bool IsDeleted { get; set; }

@@ -13,35 +13,31 @@ namespace API.Controllers
     {
         [Authorize(Policy = "AdminAccess")]
         [HttpGet]
-        public IActionResult GetUsers()
+        public async Task<IActionResult> GetUsers()
         {
-            return Ok(userService.GetUsers());
+            return Ok(await userService.GetUsers());
         }
 
         [Authorize]
         [HttpGet("me")]
         public async Task<IActionResult> Me()
         {
-            var response = await userService.GetCurrentUserAsync(User);
-            return Ok(response);
+            return Ok(await userService.GetCurrentUserAsync(base.User));
         }
 
         [Authorize(Policy = "AdminAccess")]
         [HttpGet("{userId}/requests")]
         public async Task<IActionResult> GetUserRequests(string userId)
         {
-            var result = await requestService.GetAllRequests(userId);
-            return Ok(result);
+            return Ok(await requestService.GetAllRequests(userId));
         }
 
         [Authorize]
         [HttpGet("my-requests")]
         public async Task<IActionResult> GetMyRequests()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-
-            var result = await requestService.GetAllRequests(userId);
-            return Ok(result);
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            return Ok(await requestService.GetAllRequests(userId));
         }
 
         [Authorize(Policy = "AdminAccess")]

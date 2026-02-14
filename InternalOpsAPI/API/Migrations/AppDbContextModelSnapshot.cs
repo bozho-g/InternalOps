@@ -67,6 +67,43 @@ namespace API.Migrations
                     b.ToTable("AuditLogs");
                 });
 
+            modelBuilder.Entity("API.Models.Notification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("RelatedRequestId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RelatedRequestId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Notifications");
+                });
+
             modelBuilder.Entity("API.Models.RefreshToken", b =>
                 {
                     b.Property<string>("Id")
@@ -143,7 +180,17 @@ namespace API.Migrations
 
                     b.HasIndex("HandledById");
 
+                    b.HasIndex("IsDeleted");
+
+                    b.HasIndex("RequestType");
+
                     b.HasIndex("RequestedById");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("UpdatedAt");
+
+                    b.HasIndex("Status", "UpdatedAt");
 
                     b.ToTable("Requests");
                 });
@@ -431,6 +478,24 @@ namespace API.Migrations
                     b.Navigation("Request");
                 });
 
+            modelBuilder.Entity("API.Models.Notification", b =>
+                {
+                    b.HasOne("API.Models.Request", "RelatedRequest")
+                        .WithMany()
+                        .HasForeignKey("RelatedRequestId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("API.Models.User", "User")
+                        .WithMany("Notifications")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("RelatedRequest");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("API.Models.RefreshToken", b =>
                 {
                     b.HasOne("API.Models.User", "User")
@@ -488,7 +553,8 @@ namespace API.Migrations
 
                     b.HasOne("API.Models.User", "User")
                         .WithMany("Comments")
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Request");
 
@@ -562,6 +628,8 @@ namespace API.Migrations
                     b.Navigation("Comments");
 
                     b.Navigation("HandledRequests");
+
+                    b.Navigation("Notifications");
 
                     b.Navigation("RefreshTokens");
 

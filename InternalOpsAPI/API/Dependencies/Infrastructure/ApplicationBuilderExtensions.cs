@@ -1,5 +1,7 @@
-﻿namespace API.Dependencies
+namespace API.Dependencies.Infrastructure
 {
+    using API.Hubs;
+
     public static class ApplicationBuilderExtensions
     {
         public static WebApplication UseCustomMiddleware(this WebApplication app)
@@ -11,6 +13,7 @@
             app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
+            app.MapHub<NotificationHub>("/notifications");
 
             return app;
         }

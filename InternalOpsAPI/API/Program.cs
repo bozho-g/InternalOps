@@ -5,9 +5,7 @@ namespace API
     using System.Threading.Tasks;
 
     using API.Dependencies;
-
-    using Microsoft.AspNetCore.Identity;
-    using Microsoft.EntityFrameworkCore;
+    using API.Dependencies.Infrastructure;
 
     public class Program
     {
@@ -15,9 +13,7 @@ namespace API
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services
-                .AddApiServices(builder.Configuration)
-                .AddControllers();
+            builder.Services.AddApiServices(builder.Configuration);
 
             var app = builder.Build();
 

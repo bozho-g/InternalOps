@@ -7,17 +7,18 @@
     using Microsoft.AspNetCore.Diagnostics;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
-    using Microsoft.EntityFrameworkCore;
 
     public class GlobalExceptionHandler : IExceptionHandler
     {
         public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
         {
-
             var (statusCode, title, detail) = exception switch
             {
                 BadRequestException => (StatusCodes.Status400BadRequest, "Bad Request", exception.Message),
                 UnauthorizedException => (StatusCodes.Status401Unauthorized, "Unauthorized", exception.Message),
+                NotFoundException => (StatusCodes.Status404NotFound, "Not Found", exception.Message),
+                ConflictException => (StatusCodes.Status409Conflict, "Conflict", exception.Message),
+                FileValidationException => (StatusCodes.Status400BadRequest, "File Validation Error", exception.Message),
                 _ => (StatusCodes.Status500InternalServerError, "Internal Server Error", "An unexpected error occurred.")
             };
 

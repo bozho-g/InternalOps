@@ -11,7 +11,6 @@
         CommentRemoved,
         CommentUpdated,
         AttachmentAdded,
-        AttachmentUpdated,
         AttachmentRemoved,
     }
 }

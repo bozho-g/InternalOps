@@ -1,6 +1,8 @@
 ﻿namespace API.Controllers
 {
     using API.DTOs.Auth;
+    using API.Exceptions;
+    using API.Models;
     using API.Services;
     using API.Services.Interfaces;
 
@@ -10,14 +12,14 @@
 
     [ApiController]
     [Route("api/auth")]
-    public class AuthController(IAuthService authService) : ControllerBase
+    public class AuthController(IAuthService authService, UserManager<User> userManager) : ControllerBase
     {
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterUserDto request)
         {
             var result = await authService.Register(request);
             AppendRefreshCookie(result.RefreshToken!);
-            return Ok(AuthResponse(result));
+            return Created("", AuthResponse(result));
         }
 
         [HttpPost("login")]
@@ -34,9 +36,29 @@
         {
             var refreshToken = Request.Cookies["refreshToken"];
 
-            await authService.Logout(User, refreshToken);
+            await authService.Logout(User, refreshToken!);
 
             Response.Cookies.Delete("refreshToken");
+            return NoContent();
+        }
+
+        [Authorize]
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto request)
+        {
+            var user = await userManager.GetUserAsync(User);
+
+            var result = await userManager.ChangePasswordAsync(
+                user!,
+                request.CurrentPassword,
+                request.NewPassword
+            );
+
+            if (!result.Succeeded)
+            {
+                throw new BadRequestException(string.Join(", ", result.Errors.Select(e => e.Description)));
+            }
+
             return NoContent();
         }
 
@@ -45,7 +67,7 @@
         {
             var refreshToken = Request.Cookies["refreshToken"];
 
-            var result = await authService.Refresh(refreshToken);
+            var result = await authService.Refresh(refreshToken!);
 
             if (!result.Success)
             {

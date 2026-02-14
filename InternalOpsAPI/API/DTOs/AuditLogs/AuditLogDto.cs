@@ -5,7 +5,8 @@
     public class AuditLogDto
     {
         public int Id { get; set; }
-        public required UserDto ChangedBy { get; set; }
+        public int RequestId { get; set; }
+        public UserDto? ChangedBy { get; set; }
         public AuditAction Action { get; set; }
         public Status? OldStatus { get; set; }
         public Status? NewStatus { get; set; }

@@ -40,7 +40,7 @@
         {
             if (await userManager.FindByEmailAsync(request.Email) is not null)
             {
-                throw new BadRequestException("Email is already in use");
+                throw new ConflictException("Email is already in use");
             }
 
             var user = new User { Email = request.Email, UserName = request.Email };

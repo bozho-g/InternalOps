@@ -9,7 +9,6 @@
     using API.Services.Interfaces;
 
     using Microsoft.AspNetCore.Identity;
-    using Microsoft.EntityFrameworkCore;
 
     public class UserService(UserManager<User> userManager) : IUserService
     {
@@ -29,16 +28,15 @@
 
         public async Task ToggleManager(string userId)
         {
-            var user = userManager.FindByIdAsync(userId).Result ?? throw new BadRequestException("User not found");
-            var isManager = userManager.IsInRoleAsync(user, "Manager").Result;
+            var user = (await userManager.FindByIdAsync(userId)) ?? throw new NotFoundException("User not found");
 
-            if (isManager)
+            if (await userManager.IsInRoleAsync(user, "Manager"))
             {
-                userManager.RemoveFromRoleAsync(user, "Manager").Wait();
+                await userManager.RemoveFromRoleAsync(user, "Manager");
             }
             else
             {
-                userManager.AddToRoleAsync(user, "Manager").Wait();
+                await userManager.AddToRoleAsync(user, "Manager");
             }
         }
 
