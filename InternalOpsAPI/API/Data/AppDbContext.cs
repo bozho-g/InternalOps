@@ -13,6 +13,14 @@
 
             modelBuilder.Entity<Request>(entity =>
             {
+                entity.Property(r => r.RequestType)
+                    .HasConversion<string>()
+                    .HasMaxLength(20);
+
+                entity.Property(r => r.Status)
+                    .HasConversion<string>()
+                    .HasMaxLength(20);
+
                 entity.HasIndex(e => e.IsDeleted);
                 entity.HasIndex(e => e.RequestType);
                 entity.HasIndex(e => e.Status);
@@ -50,6 +58,10 @@
 
             modelBuilder.Entity<Notification>(entity =>
             {
+                entity.Property(n => n.Type)
+                    .HasConversion<string>()
+                    .HasMaxLength(30);
+
                 entity.HasIndex(e => e.UserId);
                 entity.HasIndex(e => e.RelatedRequestId);
 
@@ -74,6 +86,10 @@
 
             modelBuilder.Entity<AuditLog>(entity =>
             {
+                entity.Property(a => a.Action)
+                    .HasConversion<string>()
+                    .HasMaxLength(50);
+
                 entity.HasOne(a => a.ChangedBy)
                     .WithMany(u => u.AuditLogs)
                     .HasForeignKey(a => a.ChangedById)

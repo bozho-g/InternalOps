@@ -7,5 +7,7 @@
         public int MyApproved { get; set; }
 
         public int MyRejected { get; set; }
+
+        public int MyCompleted { get; set; }
     }
 }
