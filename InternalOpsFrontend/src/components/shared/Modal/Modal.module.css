@@ -98,18 +98,15 @@
     line-height: 1;
     cursor: pointer;
     color: var(--muted-foreground);
-    padding: 0;
     width: 2rem;
     height: 2rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 6px;
-    transition: background-color 0.15s ease, color 0.15s ease;
+    transition: color 0.15s ease;
 }
 
 .closeButton:hover {
-    background-color: var(--accent);
     color: var(--foreground);
 }
 

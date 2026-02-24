@@ -59,18 +59,18 @@ export function AuthPage({ isSigningIn = true }) {
             <div className={styles.formContainer}>
                 <h2 className={styles.formHeader}>{mode ? "Sign in to your account" : "Create an account"}</h2>
                 <form onSubmit={handleSubmit}>
-                    <div className={styles.inputBox}>
+                    <div className="inputBox">
                         <label htmlFor="email">Email</label>
                         <input type="email" name="email" id="email" required placeholder="m@example.com" />
                     </div>
 
-                    <div className={styles.inputBox}>
+                    <div className="inputBox">
                         <label htmlFor="password">Password</label>
                         <input type="password" name="password" id="password" required placeholder="••••••••" />
                     </div>
                     {!mode && (
                         <>
-                            <div className={styles.inputBox}>
+                            <div className="inputBox">
                                 <label htmlFor="confirmPassword">Confirm Password</label>
                                 <input type="password" name="confirmPassword" id="confirmPassword" required />
                             </div>
@@ -78,7 +78,7 @@ export function AuthPage({ isSigningIn = true }) {
                     )}
                     {
                         errors.length > 0 && (
-                            <div className={styles.errorBox}>
+                            <div className="errorBox">
                                 {errors.map((error, index) => (
                                     <p key={index} className={styles.errorMessage}>{error}</p>
                                 ))}
@@ -100,13 +100,13 @@ export function AuthPage({ isSigningIn = true }) {
                     <div className={styles.demoLogin}>
                         <p className={styles.demoLabel}>Demo access:</p>
                         <div className={styles.demoButtons}>
-                            <button type="button" onClick={() => loginMutation.mutateAsync({ email: "user@example.com", password: "password" })}>
+                            <button type="button" onClick={() => loginMutation.mutateAsync({ email: "user@example.com", password: "123456" })}>
                                 User
                             </button>
-                            <button type="button" onClick={() => loginMutation.mutateAsync({ email: "manager@example.com", password: "password" })}>
+                            <button type="button" onClick={() => loginMutation.mutateAsync({ email: "manager@example.com", password: "123456" })}>
                                 Manager
                             </button>
-                            <button type="button" onClick={() => loginMutation.mutateAsync({ email: "admin@example.com", password: "password" })}>
+                            <button type="button" onClick={() => loginMutation.mutateAsync({ email: "admin@example.com", password: "123456" })}>
                                 Admin
                             </button>
                         </div>

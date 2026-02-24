@@ -6,9 +6,9 @@ export const useAuthStore = create(
         (set) => ({
             user: null,
 
-            setAuth({ token, email, roles }) {
+            setAuth({ token, email, role }) {
                 localStorage.setItem("accessToken", token);
-                set({ user: { email, roles } });
+                set({ user: { email, role } });
             },
 
             async logout() {

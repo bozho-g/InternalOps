@@ -28,9 +28,13 @@ axiosInstance.interceptors.response.use(
         }
 
         originalRequest._retry = true;
-        const authError = error.response.headers["x-auth-error"];
+        const authError = error.response.headers["www-authenticate"] || error.response.headers["x-auth-error"];
 
-        if (authError !== "token_expired") {
+        const isTokenExpired = authError && (
+            authError.toLowerCase().includes("expired")
+        );
+
+        if (!isTokenExpired) {
             useAuthStore.getState().logout();
             return Promise.reject(error);
         }
@@ -47,7 +51,7 @@ axiosInstance.interceptors.response.use(
         isRefreshing = true;
 
         try {
-            const { data } = await axios.post("/api/auth/refresh", { withCredentials: true });
+            const { data } = await axios.get("/api/auth/refresh", { withCredentials: true });
 
             localStorage.setItem("accessToken", data.token);
 

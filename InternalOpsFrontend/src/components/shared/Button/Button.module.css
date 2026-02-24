@@ -9,7 +9,7 @@
     cursor: pointer;
     border: none;
     position: relative;
-    transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+    transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease, filter 120ms ease;
 }
 
 .base:disabled {
@@ -24,7 +24,7 @@
 }
 
 .primary:hover:not(:disabled) {
-    background-color: color-mix(in oklab, var(--primary)70%, var(--background)10%);
+    filter: brightness(130%);
 }
 
 .outline {
@@ -44,6 +44,15 @@
 }
 
 .danger:hover:not(:disabled) {
+    background-color: color-mix(in oklab, var(--destructive)90%, transparent);
+}
+
+.destructive {
+    background: var(--destructive);
+    color: var(--background);
+}
+
+.destructive:hover:not(:disabled) {
     background-color: color-mix(in oklab, var(--destructive)90%, transparent);
 }
 

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import styles from './Modal.module.css';
+import { X } from 'lucide-react';
 
 export function Modal({ title, onClose, children, isOpen }) {
     const [isClosing, setIsClosing] = useState(false);
@@ -57,7 +58,7 @@ export function Modal({ title, onClose, children, isOpen }) {
                         onClick={requestClose}
                         aria-label="Close modal"
                     >
-                        {/* <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href={`${iconsUrl}#icon-close`} /></svg> */}
+                        <X />
                     </button>
                 </div>
                 <div className={styles.content}>{children}</div>

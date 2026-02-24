@@ -1,0 +1,68 @@
+.notificationsDropdown {
+    padding: 1rem;
+}
+
+.userDropdown,
+.notificationsDropdown {
+    position: absolute;
+    top: 200%;
+    right: 0;
+    width: max-content;
+    z-index: 1000;
+}
+
+.userDropdown,
+.actionsDropdown,
+.notificationsDropdown {
+    background-color: var(--card);
+    box-shadow: var(--shadow-md);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    position: absolute;
+
+    &>:first-child {
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+    }
+
+    &>:last-child {
+        border-bottom-left-radius: 8px;
+        border-bottom-right-radius: 8px;
+    }
+}
+
+.userHeader {
+    border-bottom: 2px solid var(--border);
+}
+
+.dropdownItem,
+.userHeader {
+    background: none;
+    width: 100%;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    transition: color 0.3s ease;
+}
+
+.dropdownItem {
+    color: var(--foreground);
+    cursor: pointer;
+    border: none;
+}
+
+.dropdownItem:hover {
+    color: var(--secondary);
+}
+
+.destructiveItem {
+    color: var(--destructive);
+}
+
+.destructiveItem:hover {
+    color: var(--primary);
+}
