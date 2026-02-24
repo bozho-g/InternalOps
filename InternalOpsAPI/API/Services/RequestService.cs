@@ -39,13 +39,13 @@
 
             foreach (var manager in await userManager.GetUsersInRoleAsync("Manager"))
             {
-                await notificationService.SendNotificationAsync(manager.Id, $"New ${request.RequestType} submitted: {request.Title}", request.Id, NotificationType.RequestCreated);
+                await notificationService.SendNotificationAsync(manager.Id, $"New {request.RequestType} request submitted: {request.Title}", request.Id, NotificationType.RequestCreated);
             }
 
             return mapper.MapToDto(request);
         }
 
-        public async Task<List<RequestDto>> GetAllRequests(string? userId = null, Status? status = null, RequestType? type = null, bool includeDeleted = false)
+        public async Task<List<RequestDto>> GetAllRequests(string? userId = null, Status? status = null, RequestType? type = null, bool includeDeleted = false, int? take = null, string? search = null)
         {
             var query = context.Requests.AsNoTracking();
 
@@ -54,14 +54,20 @@
                 query = query.Where((r) => r.RequestedById == userId);
             }
 
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where((r) => r.Title.Contains(search) || (r.Description != null && r.Description.Contains(search)) ||
+                    (r.HandledBy != null && r.HandledBy.Email!.Contains(search)));
+            }
+
             if (status.HasValue)
             {
-                query = query.Where((r) => (int?)r.Status == (int?)status);
+                query = query.Where((r) => r.Status == status);
             }
 
             if (type.HasValue)
             {
-                query = query.Where((r) => (int?)r.RequestType == (int?)type);
+                query = query.Where((r) => r.RequestType == type);
             }
 
             if (!includeDeleted)
@@ -69,15 +75,14 @@
                 query = query.Where((r) => !r.IsDeleted);
             }
 
-            return await mapper.ProjectToDto(query).ToListAsync();
-        }
+            query = query.OrderByDescending((r) => r.CreatedAt);
 
-        public async Task<List<RequestDto>> GetPendingRequests()
-        {
-            return await mapper.ProjectToDto(context.Requests
-                .AsNoTracking()
-                .Where(r => r.Status == Status.Pending && !r.IsDeleted))
-                .ToListAsync();
+            if (take.HasValue)
+            {
+                query = query.Take(take.Value);
+            }
+
+            return await mapper.ProjectToDto(query).ToListAsync();
         }
 
         public async Task<RequestDetailDto> GetRequestById(int requestId)
@@ -197,9 +202,20 @@
             await auditLogService.LogDeletedAsync(requestId, userId, request.Title);
         }
 
-        public Task<RequestDto> RestoreRequest(string userId, int requestId)
+        public async Task<RequestDto> RestoreRequest(string userId, int requestId)
         {
-            throw new NotImplementedException();
+            var request = await context.Requests.FirstOrDefaultAsync((Request r) => r.Id == requestId && r.IsDeleted);
+
+            if (request == null)
+                throw new NotFoundException($"Request with id {requestId} not found or is not deleted.");
+
+            request.IsDeleted = false;
+            request.DeletedAt = null;
+            request.DeletedById = null;
+
+            await context.SaveChangesAsync();
+            await auditLogService.LogRestoredAsync(requestId, userId, request.Title);
+            return mapper.MapToDto(request);
         }
 
         private async Task<RequestDto> UpdateRequestStatus(string userId, int requestId, Status requiredStatus, Status newStatus)

@@ -13,46 +13,43 @@
     {
         public async Task<AdminDashboardDto> GetAdminDashboardAsync()
         {
-            var requests = context.Requests.AsNoTracking();
-            var users = context.Users.AsNoTracking();
-
-            var statsTask = requests
+            var requestStats = await context.Requests
+                .AsNoTracking()
                 .GroupBy(r => 1)
                 .Select(g => new
                 {
                     TotalRequests = g.Count(),
-                    DeletedRequests = g.Count(r => r.IsDeleted)
+                    DeletedRequests = g.Count(r => r.IsDeleted),
+                    ByStatus = g.GroupBy(r => r.Status)
+                        .Select(sg => new { Status = sg.Key, Count = sg.Count() })
+                        .ToList(),
+                    ByType = g.GroupBy(r => r.RequestType)
+                        .Select(tg => new { Type = tg.Key, Count = tg.Count() })
+                        .ToList()
                 })
                 .FirstOrDefaultAsync();
 
-            var byStatusTask = requests
-                .GroupBy(r => r.Status)
-                .Select(g => new { Status = g.Key, Count = g.Count() })
-                .ToDictionaryAsync(x => x.Status.ToString(), x => x.Count);
+            var totalUsers = await context.Users.AsNoTracking().CountAsync();
 
-            var byTypeTask = requests
-                .GroupBy(r => r.RequestType)
-                .Select(g => new { Type = g.Key, Count = g.Count() })
-                .ToDictionaryAsync(x => x.Type.ToString(), x => x.Count);
-
-            var totalUsersTask = users.CountAsync();
-
-            await Task.WhenAll(
-                statsTask,
-                byStatusTask,
-                byTypeTask,
-                totalUsersTask
-            );
-
-            var stats = statsTask.Result ?? new { TotalRequests = 0, DeletedRequests = 0 };
+            if (requestStats is null)
+            {
+                return new()
+                {
+                    ByStatus = [],
+                    ByType = [],
+                    TotalRequests = 0,
+                    TotalUsers = totalUsers,
+                    DeletedRequests = 0
+                };
+            }
 
             return new()
             {
-                ByStatus = byStatusTask.Result,
-                ByType = byTypeTask.Result,
-                TotalRequests = stats.TotalRequests,
-                TotalUsers = totalUsersTask.Result,
-                DeletedRequests = stats.DeletedRequests
+                ByStatus = requestStats.ByStatus.ToDictionary(x => x.Status.ToString(), x => x.Count),
+                ByType = requestStats.ByType.ToDictionary(x => x.Type.ToString(), x => x.Count),
+                TotalRequests = requestStats.TotalRequests,
+                TotalUsers = totalUsers,
+                DeletedRequests = requestStats.DeletedRequests
             };
         }
 
@@ -61,49 +58,51 @@
             var today = DateTime.UtcNow.Date;
             var tmrw = today.AddDays(1);
 
-            var requests = context.Requests.AsNoTracking();
-
-            var byTypeTask = requests
-                .GroupBy(r => r.RequestType)
-                .Select(g => new { Type = g.Key, Count = g.Count() })
-                .ToDictionaryAsync(x => x.Type.ToString(), x => x.Count);
-
-            var pendingCountTask = requests
-                .Where(r => r.Status == Status.Pending)
-                .Select(r => new RequestDto
-                {
-                    Id = r.Id,
-                    Title = r.Title,
-                    RequestType = r.RequestType,
-                    Status = r.Status,
-                    CreatedAt = r.CreatedAt,
-                    RequestedBy = new UserDto
-                    {
-                        Id = r.RequestedBy!.Id,
-                        Email = r.RequestedBy.Email!
-                    }
-                })
-                .ToListAsync();
-
-            var countsTask = context.Requests
+            var stats = await context.Requests
+                .AsNoTracking()
                 .GroupBy(r => 1)
                 .Select(g => new
                 {
+                    ByType = g.GroupBy(r => r.RequestType)
+                        .Select(tg => new { Type = tg.Key, Count = tg.Count() })
+                        .ToList(),
                     ApprovedToday = g.Count(r => r.Status == Status.Approved && r.UpdatedAt >= today && r.UpdatedAt < tmrw),
-                    PendingRequests = g.Count(r => r.Status == Status.Pending)
+                    PendingCount = g.Count(r => r.Status == Status.Pending),
+                    PendingRequests = g.Where(r => r.Status == Status.Pending)
+                        .Select(r => new RequestDto
+                        {
+                            Id = r.Id,
+                            Title = r.Title,
+                            RequestType = r.RequestType,
+                            Status = r.Status,
+                            CreatedAt = r.CreatedAt,
+                            RequestedBy = new UserDto
+                            {
+                                Id = r.RequestedBy!.Id,
+                                Email = r.RequestedBy.Email!
+                            }
+                        })
+                        .ToList()
                 })
                 .FirstOrDefaultAsync();
 
-            await Task.WhenAll(countsTask, byTypeTask, pendingCountTask);
-
-            var counts = countsTask.Result ?? new { ApprovedToday = 0, PendingRequests = 0 };
+            if (stats is null)
+            {
+                return new()
+                {
+                    ByType = [],
+                    ApprovedToday = 0,
+                    PendingCount = 0,
+                    PendingRequests = []
+                };
+            }
 
             return new()
             {
-                ByType = byTypeTask.Result,
-                PendingCount = counts.PendingRequests,
-                ApprovedToday = counts.ApprovedToday,
-                PendingRequests = pendingCountTask.Result,
+                ByType = stats.ByType.ToDictionary(x => x.Type.ToString(), x => x.Count),
+                PendingCount = stats.PendingCount,
+                ApprovedToday = stats.ApprovedToday,
+                PendingRequests = stats.PendingRequests,
             };
         }
 
@@ -119,16 +118,18 @@
                  {
                      MyApproved = g.Count(r => r.Status == Status.Approved),
                      MyPending = g.Count(r => r.Status == Status.Pending),
-                     MyRejected = g.Count(r => r.Status == Status.Rejected)
+                     MyRejected = g.Count(r => r.Status == Status.Rejected),
+                     MyCompleted = g.Count(r => r.Status == Status.Completed)
                  })
                  .FirstOrDefaultAsync()
-                 ?? new { MyApproved = 0, MyPending = 0, MyRejected = 0 };
+                 ?? new { MyApproved = 0, MyPending = 0, MyRejected = 0, MyCompleted = 0 };
 
             return new()
             {
                 MyApproved = counts.MyApproved,
                 MyPending = counts.MyPending,
                 MyRejected = counts.MyRejected,
+                MyCompleted = counts.MyCompleted
             };
         }
     }

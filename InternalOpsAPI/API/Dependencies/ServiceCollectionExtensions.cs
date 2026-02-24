@@ -16,7 +16,10 @@
         {
             services
                 .AddHttpContextAccessor()
-                .AddControllers()
+                .AddControllers(options =>
+                {
+                    options.Filters.Add<ValidationFilter>();
+                })
                 .AddJsonOptions(options =>
                 {
                     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());

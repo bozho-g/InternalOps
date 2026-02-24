@@ -6,6 +6,8 @@
     using API.Services;
     using API.Services.Interfaces;
 
+    using Microsoft.AspNetCore.Mvc;
+
     public static class ApplicationServiceExtensions
     {
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
@@ -14,7 +16,11 @@
                 .AddMappers()
                 .AddAzureStorage()
                 .AddDomainServices(configuration)
-                .AddBackgroundServices();
+                .AddBackgroundServices()
+                .Configure<ApiBehaviorOptions>(options =>
+                {
+                    options.SuppressModelStateInvalidFilter = true;
+                });
 
             return services;
         }
@@ -39,6 +45,7 @@
             services.AddScoped<IAttachmentService, AttachmentService>();
             services.AddScoped<IFileValidator, FileValidator>();
             services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<IDashboardService, DashboardService>();
             services.Configure<FileUploadOptions>(configuration.GetSection("FileUploadOptions"));
             return services;
         }

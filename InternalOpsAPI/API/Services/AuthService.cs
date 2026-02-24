@@ -1,6 +1,5 @@
 ﻿namespace API.Services
 {
-    using System.Security.Claims;
     using System.Threading.Tasks;
 
     using API.Data;
@@ -18,7 +17,7 @@
         public string? AccessToken { get; init; }
         public string? RefreshToken { get; init; }
         public string? Email { get; init; }
-        public IEnumerable<string>? Roles { get; init; }
+        public string? Role { get; init; }
         public IEnumerable<string>? Errors { get; init; }
     }
 
@@ -33,7 +32,7 @@
                 throw new UnauthorizedException("Invalid credentials");
             }
 
-            return await IssueTokens(user);
+            return await CreateAuthResult(user);
         }
 
         public async Task<AuthResult> Register(RegisterUserDto request)
@@ -52,38 +51,7 @@
                 throw new BadRequestException(string.Join(", ", result.Errors.Select(e => e.Description)));
             }
 
-            return await IssueTokens(user);
-        }
-
-        public async Task Logout(ClaimsPrincipal principal, string? refreshToken)
-        {
-            if (string.IsNullOrEmpty(refreshToken))
-            {
-                return;
-            }
-
-            var user = await userManager.GetUserAsync(principal);
-
-            if (user is null)
-            {
-                return;
-            }
-
-            var incomingHash = tokenService.HashToken(refreshToken);
-
-            var token = await context.RefreshTokens.FirstOrDefaultAsync(rt =>
-                           rt.TokenHash == incomingHash &&
-                           rt.UserId == user.Id &&
-                           !rt.IsRevoked
-                       );
-
-            if (token is null)
-            {
-                return;
-            }
-
-            token.IsRevoked = true;
-            await context.SaveChangesAsync();
+            return await CreateAuthResult(user);
         }
 
         public async Task<AuthResult> Refresh(string? refreshToken)
@@ -115,7 +83,7 @@
             await context.RefreshTokens.AddAsync(newRefreshToken.RefreshToken);
             await context.SaveChangesAsync();
 
-            var roles = await userManager.GetRolesAsync(token.User);
+            var role = (await userManager.GetRolesAsync(token.User)).FirstOrDefault();
 
             return new AuthResult
             {
@@ -123,17 +91,35 @@
                 AccessToken = await tokenService.GenerateToken(token.User),
                 RefreshToken = newRefreshToken.TokenRaw,
                 Email = token.User.Email!,
-                Roles = roles,
+                Role = role,
             };
         }
 
-        private async Task<AuthResult> IssueTokens(User user)
+        public async Task RevokeToken(string? refreshToken)
+        {
+            if (string.IsNullOrWhiteSpace(refreshToken))
+                return;
+
+            var incomingHash = tokenService.HashToken(refreshToken);
+
+            var token = await context.RefreshTokens
+                .FirstOrDefaultAsync(rt => rt.TokenHash == incomingHash);
+
+            if (token == null || token.IsRevoked)
+                return;
+
+            token.IsRevoked = true;
+
+            await context.SaveChangesAsync();
+        }
+
+        private async Task<AuthResult> CreateAuthResult(User user)
         {
             var refreshToken = tokenService.GenerateRefreshToken(user.Id);
             await context.RefreshTokens.AddAsync(refreshToken.RefreshToken);
             await context.SaveChangesAsync();
 
-            var roles = await userManager.GetRolesAsync(user);
+            var role = (await userManager.GetRolesAsync(user)).FirstOrDefault();
 
             return new AuthResult
             {
@@ -141,7 +127,7 @@
                 AccessToken = await tokenService.GenerateToken(user),
                 RefreshToken = refreshToken.TokenRaw,
                 Email = user.Email,
-                Roles = roles,
+                Role = role,
             };
         }
 

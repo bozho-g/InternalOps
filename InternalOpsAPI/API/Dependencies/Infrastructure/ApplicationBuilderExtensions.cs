@@ -6,7 +6,10 @@ namespace API.Dependencies.Infrastructure
     {
         public static WebApplication UseCustomMiddleware(this WebApplication app)
         {
-            app.UseExceptionHandler();
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseExceptionHandler();
+            }
 
             app.UseCors("AllowFrontend");
             app.UseHttpsRedirection();

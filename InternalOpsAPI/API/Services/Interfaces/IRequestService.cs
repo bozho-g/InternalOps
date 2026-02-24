@@ -9,9 +9,8 @@
     {
         public Task<RequestDto> CreateRequest(string userId, CreateRequestDto RequestDto);
 
-        Task<List<RequestDto>> GetAllRequests(string? userId = null, Status? status = null, RequestType? type = null, bool includeDeleted = false);
+        Task<List<RequestDto>> GetAllRequests(string? userId = null, Status? status = null, RequestType? type = null, bool includeDeleted = false, int? take = null, string? search = null);
         public Task<RequestDetailDto> GetRequestById(int requestId);
-        public Task<List<RequestDto>> GetPendingRequests();
 
         public Task<RequestDto> UpdateRequest(string userId, int requestId, JsonPatchDocument<UpdateRequestDto> patchDoc);
 

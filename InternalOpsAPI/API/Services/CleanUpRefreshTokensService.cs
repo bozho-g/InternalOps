@@ -14,7 +14,7 @@
 
             await RunCleanupAsync(stoppingToken);
 
-            var timer = new PeriodicTimer(TimeSpan.FromHours(1));
+            var timer = new PeriodicTimer(TimeSpan.FromMinutes(15));
 
             while (await timer.WaitForNextTickAsync(stoppingToken))
             {

@@ -14,6 +14,7 @@
     {
         public async Task<IEnumerable<NotificationDto>> GetUserNotificationsAsync(string userId) =>
             await dbContext.Notifications
+                .AsNoTracking()
                 .Where(n => n.UserId == userId)
                 .OrderByDescending(n => n.CreatedAt)
                 .Select(n => new NotificationDto

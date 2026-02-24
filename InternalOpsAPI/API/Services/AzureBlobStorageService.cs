@@ -10,7 +10,7 @@
 
         public AzureBlobStorageService(BlobServiceClient blobServiceClient, IConfiguration configuration)
         {
-            var containerName = configuration["AzureBlobStorage:ContainerName"];
+            var containerName = configuration["AzureStorage:ContainerName"];
 
             _containerClient = blobServiceClient.GetBlobContainerClient(containerName);
 
