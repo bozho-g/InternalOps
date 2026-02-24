@@ -30,15 +30,15 @@
             return Ok(AuthResponse(result));
         }
 
-        [Authorize]
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
-            var refreshToken = Request.Cookies["refreshToken"];
+            if (Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
+            {
+                await authService.RevokeToken(refreshToken);
+                Response.Cookies.Delete("refreshToken");
+            }
 
-            await authService.Logout(User, refreshToken!);
-
-            Response.Cookies.Delete("refreshToken");
             return NoContent();
         }
 
@@ -94,7 +94,7 @@
         {
             token = r.AccessToken,
             email = r.Email,
-            roles = r.Roles
+            role = r.Role?.ToLower()
         };
     }
 }

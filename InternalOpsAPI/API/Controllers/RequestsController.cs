@@ -22,18 +22,34 @@
             return Ok(await requestService.CreateRequest(userId, createRequestDto));
         }
 
-        [Authorize(Policy = "ManagerAccess")]
         [HttpGet]
-        public async Task<IActionResult> GetAllRequests([FromQuery] string? userId, [FromQuery] Status? status, [FromQuery] RequestType? type, [FromQuery] bool includeDeleted = false)
+        public async Task<IActionResult> GetRequests(
+            [FromQuery] string? userId,
+            [FromQuery] Status? status,
+            [FromQuery] RequestType? type,
+            [FromQuery] bool includeDeleted = false,
+            [FromQuery] int? take = null,
+            [FromQuery] string? search = null)
         {
-            return Ok(await requestService.GetAllRequests(userId, status, type, includeDeleted));
-        }
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var isAdminOrManager = User.IsInRole("Manager") || User.IsInRole("Admin");
 
-        [Authorize(Policy = "ManagerAccess")]
-        [HttpGet("pending")]
-        public async Task<IActionResult> GetPendingRequests()
-        {
-            return Ok(await requestService.GetPendingRequests());
+            if (!string.IsNullOrEmpty(userId))
+            {
+                if (!isAdminOrManager && userId != currentUserId)
+                {
+                    return Forbid();
+                }
+
+                return Ok(await requestService.GetAllRequests(userId, status, type, includeDeleted, take, search));
+            }
+
+            if (!isAdminOrManager)
+            {
+                return Ok(await requestService.GetAllRequests(currentUserId, status, type, includeDeleted, take, search));
+            }
+
+            return Ok(await requestService.GetAllRequests(null, status, type, includeDeleted, take, search));
         }
 
         [HttpGet("{id}")]
@@ -86,8 +102,16 @@
         public async Task<IActionResult> RestoreRequest(int id)
         {
             string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            await requestService.RestoreRequest(userId, id);
-            return NoContent();
+            return Ok(await requestService.RestoreRequest(userId, id));
+        }
+
+        [HttpGet("request-types")]
+        public IActionResult GetRequestTypes()
+        {
+            var types = Enum.GetValues<RequestType>()
+                .Select(t => t.ToString());
+
+            return Ok(types);
         }
     }
 }
