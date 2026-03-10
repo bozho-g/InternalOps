@@ -46,6 +46,7 @@
             services.AddScoped<IFileValidator, FileValidator>();
             services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<IDashboardService, DashboardService>();
+            services.AddScoped<ICommentService, CommentService>();
             services.Configure<FileUploadOptions>(configuration.GetSection("FileUploadOptions"));
             return services;
         }

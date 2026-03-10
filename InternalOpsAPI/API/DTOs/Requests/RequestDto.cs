@@ -15,12 +15,14 @@
 
         public Status Status { get; set; }
 
-        public required UserDto RequestedBy { get; set; }
+        public UserDto? RequestedBy { get; set; }
 
         public UserDto? HandledBy { get; set; }
 
         public DateTime CreatedAt { get; set; }
 
         public DateTime UpdatedAt { get; set; }
+
+        public required DeletedDto DeletedInfo { get; set; }
     }
 }

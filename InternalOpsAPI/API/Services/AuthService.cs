@@ -3,7 +3,7 @@
     using System.Threading.Tasks;
 
     using API.Data;
-    using API.DTOs.Auth;
+    using API.DTOs.Users;
     using API.Exceptions;
     using API.Models;
     using API.Services.Interfaces;

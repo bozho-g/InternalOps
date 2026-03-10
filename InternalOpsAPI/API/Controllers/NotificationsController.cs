@@ -20,14 +20,14 @@
             return Ok(notifications);
         }
 
-        [HttpPost("{id}/read")]
+        [HttpPatch("{id}/read")]
         public async Task<IActionResult> MarkAsRead(int id)
         {
             await notification.MarkAsReadAsync(id);
             return NoContent();
         }
 
-        [HttpPost("read-all")]
+        [HttpPatch("read-all")]
         public async Task<IActionResult> MarkAllAsRead()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);

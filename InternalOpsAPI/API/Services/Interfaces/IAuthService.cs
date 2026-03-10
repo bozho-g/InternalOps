@@ -1,6 +1,6 @@
 ﻿namespace API.Services.Interfaces
 {
-    using API.DTOs.Auth;
+    using API.DTOs.Users;
 
     public interface IAuthService
     {

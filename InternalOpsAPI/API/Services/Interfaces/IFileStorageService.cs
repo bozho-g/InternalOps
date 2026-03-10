@@ -4,6 +4,5 @@
     {
         Task<string> UploadFileAsync(IFormFile file, string requestId);
         Task DeleteFileAsync(string fileUrl);
-        Task<bool> FileExistsAsync(string fileUrl);
     }
 }

@@ -1,6 +1,7 @@
 ﻿namespace API.Services.Interfaces
 {
     using API.DTOs.AuditLogs;
+    using API.DTOs.Paging;
     using API.Models.Enums;
 
     public interface IAuditLogService
@@ -15,20 +16,6 @@
             string? oldValue = null,
             string? newValue = null);
 
-        public Task<List<AuditLogDto>> GetAuditLogsByRequest(int requestId);
-
-        public Task<List<AuditLogDto>> GetAllAuditLogs(
-            int? requestId = null,
-            string? userId = null,
-            AuditAction? action = null,
-            DateTime? fromDate = null,
-            DateTime? toDate = null);
-
-        public Task<int> GetAuditLogsCount(
-            int? requestId = null,
-            string? userId = null,
-            AuditAction? action = null,
-            DateTime? fromDate = null,
-            DateTime? toDate = null);
+        public Task<PagedResponse<AuditLogDto>> GetAllAuditLogs(AuditFilterDto filter);
     }
 }

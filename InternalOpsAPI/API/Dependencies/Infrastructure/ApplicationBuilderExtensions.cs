@@ -16,7 +16,7 @@ namespace API.Dependencies.Infrastructure
             app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
-            app.MapHub<NotificationHub>("/notifications");
+            app.MapHub<NotificationHub>("/hubs/notifications");
 
             return app;
         }

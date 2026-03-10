@@ -54,7 +54,7 @@
             await dbContext.SaveChangesAsync();
 
             await hubContext.Clients.User(userId).SendAsync("ReceiveNotification", new
-            {
+            {   
                 notification.Id,
                 notification.Message,
                 notification.CreatedAt,

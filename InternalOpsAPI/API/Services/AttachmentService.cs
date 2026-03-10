@@ -9,12 +9,18 @@
     using API.Services.Extensions;
     using API.Services.Interfaces;
 
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.EntityFrameworkCore;
 
-    public class AttachmentService(AppDbContext context, IFileStorageService fileStorage, IAuditLogService auditLogService, AttachmentMapper mapper, IFileValidator fileValidator) : IAttachmentService
+    public class AttachmentService(AppDbContext context, IFileStorageService fileStorage, IAuditLogService auditLogService, AttachmentMapper mapper, IFileValidator fileValidator, IHttpContextAccessor httpContextAccessor, IAuthorizationService authorizationService, IConfiguration configuration) : IAttachmentService
     {
+        private readonly bool attachmentsEnabled = configuration.GetValue<bool>("Features:EnableAttachments");
+
         public async Task DeleteAttachmentAsync(string userId, int attachmentId)
         {
+            if (!attachmentsEnabled)
+                throw new BadRequestException("Attachments are disabled.");
+
             var attachment = await context.RequestAttachments
                  .Include(a => a.Request)
                  .FirstOrDefaultAsync(a => a.Id == attachmentId);
@@ -22,28 +28,41 @@
             if (attachment == null)
                 throw new NotFoundException("Attachment not found");
 
-            if (attachment.Request?.RequestedById != userId)
-                throw new UnauthorizedAccessException("You are not authorized to delete this attachment");
-
-            if (attachment.Request.Status != Status.Pending)
+            if (attachment.Request!.Status != Status.Pending)
                 throw new BadRequestException("Cannot delete attachments from a request that is not pending");
 
-            await fileStorage.DeleteFileAsync(attachment.FileUrl);
-            context.RequestAttachments.Remove(attachment);
+            var user = httpContextAccessor.HttpContext?.User;
 
-            await auditLogService.LogAttachmentRemovedAsync(attachment.RequestId, userId, attachment.FileName);
+            if (!(await authorizationService.AuthorizeAsync(user!, attachment.Request.RequestedById, "OwnerOrManager")).Succeeded)
+                throw new UnauthorizedException("You do not have permission to access this request.");
+
+            await DeleteAttachmentInternalAsync(attachment, userId);
+
+            await context.SaveChangesAsync();
+        }
+
+        public async Task DeleteAttachmentsForRequestAsync(string userId, Request request)
+        {
+            foreach (var attachment in request.Attachments.ToList())
+            {
+                await DeleteAttachmentInternalAsync(attachment, userId);
+            }
+
             await context.SaveChangesAsync();
         }
 
         public async Task<AttachmentDto> UploadAttachmentAsync(string userId, int requestId, IFormFile file)
         {
+            if (!attachmentsEnabled)
+                throw new BadRequestException("Attachments are disabled.");
+
             var request = await context.Requests.FirstOrDefaultAsync(r => r.Id == requestId && !r.IsDeleted);
 
             if (request == null)
                 throw new NotFoundException("Request not found");
 
             if (request.RequestedById != userId)
-                throw new UnauthorizedAccessException("You are not authorized to upload attachments for this request");
+                throw new UnauthorizedException("You are not authorized to upload attachments for this request");
 
             if (request.Status != Status.Pending)
                 throw new BadRequestException("Cannot upload attachments to a request that is not pending");
@@ -68,6 +87,14 @@
             await context.SaveChangesAsync();
 
             return mapper.MapToDto(attachment);
+        }
+
+        private async Task DeleteAttachmentInternalAsync(RequestAttachment attachment, string userId)
+        {
+            await fileStorage.DeleteFileAsync(attachment.FileUrl);
+            context.RequestAttachments.Remove(attachment);
+
+            await auditLogService.LogAttachmentRemovedAsync(attachment.RequestId, userId, attachment.FileName);
         }
     }
 }

@@ -1,3 +1,4 @@
+using API.DTOs.Users;
 using API.Services.Interfaces;
 
 using Microsoft.AspNetCore.Authorization;
@@ -9,11 +10,11 @@ namespace API.Controllers
     [Route("api/users")]
     public class UsersController(IUserService userService) : ControllerBase
     {
-        [Authorize(Policy = "AdminAccess")]
+        [Authorize(Policy = "ManagerAccess")]
         [HttpGet]
-        public async Task<IActionResult> GetUsers()
+        public async Task<IActionResult> GetUsers([FromQuery] UserFilterDto filter)
         {
-            return Ok(await userService.GetUsers());
+            return Ok(await userService.GetUsers(filter));
         }
 
         [Authorize]
@@ -25,7 +26,7 @@ namespace API.Controllers
 
         [Authorize(Policy = "AdminAccess")]
         [HttpPost("{userId}/toggle-manager")]
-        public async Task<IActionResult> ChangeUserRole(string userId)
+        public async Task<IActionResult> ToggleManager(string userId)
         {
             await userService.ToggleManager(userId);
             return Ok();

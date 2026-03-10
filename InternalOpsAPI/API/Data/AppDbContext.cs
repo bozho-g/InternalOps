@@ -94,6 +94,11 @@
                     .WithMany(u => u.AuditLogs)
                     .HasForeignKey(a => a.ChangedById)
                     .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasIndex(e => e.RequestId);
+                entity.HasIndex(e => e.ChangedById);
+                entity.HasIndex(e => e.Action);
+                entity.HasIndex(e => e.Timestamp);
             });
         }
 

@@ -2,7 +2,8 @@
 {
     using System.Security.Claims;
 
-    using API.DTOs.Auth;
+    using API.DTOs.Paging;
+    using API.DTOs.Users;
 
     public interface IUserService
     {
@@ -10,6 +11,6 @@
 
         public Task ToggleManager(string userId);
 
-        public Task<IEnumerable<UserRolesDto>> GetUsers();
+        public Task<PagedResponse<UserDashDto>> GetUsers(UserFilterDto filter);
     }
 }

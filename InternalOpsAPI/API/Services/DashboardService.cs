@@ -1,9 +1,7 @@
 ﻿namespace API.Services
 {
     using API.Data;
-    using API.DTOs;
     using API.DTOs.Dashboards;
-    using API.DTOs.Requests;
     using API.Models.Enums;
     using API.Services.Interfaces;
 
@@ -19,12 +17,11 @@
                 .Select(g => new
                 {
                     TotalRequests = g.Count(),
-                    DeletedRequests = g.Count(r => r.IsDeleted),
                     ByStatus = g.GroupBy(r => r.Status)
-                        .Select(sg => new { Status = sg.Key, Count = sg.Count() })
+                        .Select(sg => new { Status = sg.Key, Count = sg.Count(r => !r.IsDeleted) })
                         .ToList(),
                     ByType = g.GroupBy(r => r.RequestType)
-                        .Select(tg => new { Type = tg.Key, Count = tg.Count() })
+                        .Select(tg => new { Type = tg.Key, Count = tg.Count(r => !r.IsDeleted) })
                         .ToList()
                 })
                 .FirstOrDefaultAsync();
@@ -39,7 +36,6 @@
                     ByType = [],
                     TotalRequests = 0,
                     TotalUsers = totalUsers,
-                    DeletedRequests = 0
                 };
             }
 
@@ -49,7 +45,6 @@
                 ByType = requestStats.ByType.ToDictionary(x => x.Type.ToString(), x => x.Count),
                 TotalRequests = requestStats.TotalRequests,
                 TotalUsers = totalUsers,
-                DeletedRequests = requestStats.DeletedRequests
             };
         }
 
@@ -64,25 +59,10 @@
                 .Select(g => new
                 {
                     ByType = g.GroupBy(r => r.RequestType)
-                        .Select(tg => new { Type = tg.Key, Count = tg.Count() })
+                        .Select(tg => new { Type = tg.Key, Count = tg.Count(r => r.Status == Status.Pending && !r.IsDeleted) })
                         .ToList(),
                     ApprovedToday = g.Count(r => r.Status == Status.Approved && r.UpdatedAt >= today && r.UpdatedAt < tmrw),
                     PendingCount = g.Count(r => r.Status == Status.Pending),
-                    PendingRequests = g.Where(r => r.Status == Status.Pending)
-                        .Select(r => new RequestDto
-                        {
-                            Id = r.Id,
-                            Title = r.Title,
-                            RequestType = r.RequestType,
-                            Status = r.Status,
-                            CreatedAt = r.CreatedAt,
-                            RequestedBy = new UserDto
-                            {
-                                Id = r.RequestedBy!.Id,
-                                Email = r.RequestedBy.Email!
-                            }
-                        })
-                        .ToList()
                 })
                 .FirstOrDefaultAsync();
 
@@ -93,7 +73,6 @@
                     ByType = [],
                     ApprovedToday = 0,
                     PendingCount = 0,
-                    PendingRequests = []
                 };
             }
 
@@ -102,7 +81,6 @@
                 ByType = stats.ByType.ToDictionary(x => x.Type.ToString(), x => x.Count),
                 PendingCount = stats.PendingCount,
                 ApprovedToday = stats.ApprovedToday,
-                PendingRequests = stats.PendingRequests,
             };
         }
 

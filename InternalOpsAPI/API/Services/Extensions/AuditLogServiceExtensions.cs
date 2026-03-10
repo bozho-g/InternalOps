@@ -12,8 +12,6 @@
 
         public static async Task LogFieldChangesAsync(this IAuditLogService auditLogService, int requestId, string userId, Dictionary<string, (string? OriginalValue, string? NewValue)> changes)
         {
-            var tasks = new List<Task>();
-
             foreach (var (fieldName, (originalValue, newValue)) in changes)
             {
                 if (originalValue != newValue)
@@ -22,13 +20,8 @@
                                   string.IsNullOrEmpty(newValue) ? $"{fieldName} cleared (was '{originalValue}')" :
                                   $"{fieldName} changed from '{originalValue}' to '{newValue}'";
 
-                    tasks.Add(auditLogService.LogAsync(requestId, userId, AuditAction.Updated, summary, oldValue: originalValue, newValue: newValue));
+                    await auditLogService.LogAsync(requestId, userId, AuditAction.Updated, summary, oldValue: originalValue, newValue: newValue);
                 }
-            }
-
-            if (tasks.Count != 0)
-            {
-                await Task.WhenAll(tasks);
             }
         }
 

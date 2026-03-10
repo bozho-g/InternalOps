@@ -23,33 +23,9 @@
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetRequests(
-            [FromQuery] string? userId,
-            [FromQuery] Status? status,
-            [FromQuery] RequestType? type,
-            [FromQuery] bool includeDeleted = false,
-            [FromQuery] int? take = null,
-            [FromQuery] string? search = null)
+        public async Task<IActionResult> GetRequests([FromQuery] RequestFilterDto filter)
         {
-            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            var isAdminOrManager = User.IsInRole("Manager") || User.IsInRole("Admin");
-
-            if (!string.IsNullOrEmpty(userId))
-            {
-                if (!isAdminOrManager && userId != currentUserId)
-                {
-                    return Forbid();
-                }
-
-                return Ok(await requestService.GetAllRequests(userId, status, type, includeDeleted, take, search));
-            }
-
-            if (!isAdminOrManager)
-            {
-                return Ok(await requestService.GetAllRequests(currentUserId, status, type, includeDeleted, take, search));
-            }
-
-            return Ok(await requestService.GetAllRequests(null, status, type, includeDeleted, take, search));
+            return Ok(await requestService.GetAllRequests(User, filter));
         }
 
         [HttpGet("{id}")]
@@ -109,9 +85,26 @@
         public IActionResult GetRequestTypes()
         {
             var types = Enum.GetValues<RequestType>()
-                .Select(t => t.ToString());
+                .Select(t => new
+                {
+                    value = t.ToString().ToLower(),
+                    label = t.ToString()
+                });
 
             return Ok(types);
+        }
+
+        [HttpGet("request-statuses")]
+        public IActionResult GetRequestStatuses()
+        {
+            var statuses = Enum.GetValues<Status>()
+                .Select(s => new
+                {
+                    value = s.ToString().ToLower(),
+                    label = s.ToString()
+                });
+
+            return Ok(statuses);
         }
     }
 }

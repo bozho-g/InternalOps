@@ -2,9 +2,11 @@
 {
     using API.Data;
     using API.DTOs.AuditLogs;
+    using API.DTOs.Paging;
     using API.Mappers;
     using API.Models;
     using API.Models.Enums;
+    using API.Services.Extensions;
     using API.Services.Interfaces;
 
     using Microsoft.EntityFrameworkCore;
@@ -30,77 +32,40 @@
             await context.SaveChangesAsync();
         }
 
-        public async Task<List<AuditLogDto>> GetAllAuditLogs(int? requestId = null, string? userId = null, AuditAction? action = null, DateTime? fromDate = null, DateTime? toDate = null)
+        public async Task<PagedResponse<AuditLogDto>> GetAllAuditLogs(AuditFilterDto filter)
         {
             var query = context.AuditLogs.AsNoTracking();
 
-            if (requestId.HasValue)
-            {
-                query = query.Where(a => a.RequestId == requestId);
-            }
+            var from = filter.FromDate?.ToDateTime(TimeOnly.MinValue);
+            var to = filter.ToDate?.ToDateTime(TimeOnly.MinValue).AddDays(1);
 
-            if (!string.IsNullOrEmpty(userId))
-            {
-                query = query.Where(a => a.ChangedById == userId);
-            }
+            if (!string.IsNullOrEmpty(filter.Search))
+                query = query.Where(a =>
+                (a.Summary != null && a.Summary.Contains(filter.Search)) ||
+                (a.NewValue != null && a.NewValue.Contains(filter.Search)) ||
+                (a.OldValue != null && a.OldValue.Contains(filter.Search)) ||
+                (a.ChangedBy != null && a.ChangedBy.Email != null && a.ChangedBy.Email.Contains(filter.Search)));
 
-            if (action.HasValue)
-            {
-                query = query.Where(a => a.Action == action);
-            }
+            if (filter.RequestId.HasValue)
+                query = query.Where(a => a.RequestId == filter.RequestId);
 
-            if (fromDate.HasValue)
-            {
-                query = query.Where(a => a.Timestamp >= fromDate);
-            }
+            if (!string.IsNullOrEmpty(filter.UserId))
+                query = query.Where(a => a.ChangedById == filter.UserId);
 
-            if (toDate.HasValue)
-            {
-                query = query.Where(a => a.Timestamp <= toDate);
-            }
+            if (filter.Action.HasValue)
+                query = query.Where(a => a.Action == filter.Action);
 
-            return await mapper.ProjectToDto(query.OrderByDescending(a => a.Timestamp)).ToListAsync();
-        }
+            if (filter.FromDate.HasValue)
+                query = query.Where(a => a.Timestamp >= from);
 
-        public async Task<List<AuditLogDto>> GetAuditLogsByRequest(int requestId)
-        {
-            return await mapper.ProjectToDto(context.AuditLogs
-                    .AsNoTracking()
-                    .Where(log => log.RequestId == requestId))
-                    .OrderByDescending(log => log.Timestamp)
-                .ToListAsync();
-        }
+            if (filter.ToDate.HasValue)
+                query = query.Where(a => a.Timestamp <= to);
 
-        public async Task<int> GetAuditLogsCount(int? requestId = null, string? userId = null, AuditAction? action = null, DateTime? fromDate = null, DateTime? toDate = null)
-        {
-            var query = context.AuditLogs.AsNoTracking();
+            query = query.OrderByDescending(a => a.Timestamp);
 
-            if (requestId.HasValue)
-            {
-                query = query.Where(a => a.RequestId == requestId);
-            }
+            var projected = mapper.ProjectToDto(query);
 
-            if (!string.IsNullOrEmpty(userId))
-            {
-                query = query.Where(a => a.ChangedById == userId);
-            }
-
-            if (action.HasValue)
-            {
-                query = query.Where(a => a.Action == action);
-            }
-
-            if (fromDate.HasValue)
-            {
-                query = query.Where(a => a.Timestamp >= fromDate);
-            }
-
-            if (toDate.HasValue)
-            {
-                query = query.Where(a => a.Timestamp <= toDate);
-            }
-
-            return await query.CountAsync();
+            return await projected.ToPagedResponseAsync(filter.PageNumber, filter.PageSize);
         }
     }
 }

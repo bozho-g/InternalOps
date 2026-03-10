@@ -1,8 +1,10 @@
 ﻿namespace API.Services
 {
+    using System.Security.Claims;
     using System.Threading.Tasks;
 
     using API.Data;
+    using API.DTOs.Paging;
     using API.DTOs.Requests;
     using API.Exceptions;
     using API.Mappers;
@@ -45,63 +47,92 @@
             return mapper.MapToDto(request);
         }
 
-        public async Task<List<RequestDto>> GetAllRequests(string? userId = null, Status? status = null, RequestType? type = null, bool includeDeleted = false, int? take = null, string? search = null)
+        public async Task<PagedResponse<RequestDto>> GetAllRequests(ClaimsPrincipal user, RequestFilterDto filter)
         {
-            var query = context.Requests.AsNoTracking();
+            var currentUserId = user.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var isAdminOrManager = user.IsInRole("Manager") || user.IsInRole("Admin");
 
-            if (!string.IsNullOrEmpty(userId))
+            string? effectiveUserId = null;
+            var createdFrom = filter.CreatedFrom?.ToDateTime(TimeOnly.MinValue);
+            var createdTo = filter.CreatedTo?.ToDateTime(TimeOnly.MinValue).AddDays(1);
+
+            var handledFrom = filter.HandledFrom?.ToDateTime(TimeOnly.MinValue);
+            var handledTo = filter.HandledTo?.ToDateTime(TimeOnly.MinValue).AddDays(1);
+
+            var effectiveIncludeDeleted = isAdminOrManager && filter.IncludeDeleted;
+
+            if (!string.IsNullOrEmpty(filter.UserId))
             {
-                query = query.Where((r) => r.RequestedById == userId);
+                effectiveUserId = isAdminOrManager || filter.UserId == currentUserId
+                    ? filter.UserId
+                    : currentUserId;
+            }
+            else if (!isAdminOrManager)
+            {
+                effectiveUserId = currentUserId;
             }
 
-            if (!string.IsNullOrEmpty(search))
-            {
-                query = query.Where((r) => r.Title.Contains(search) || (r.Description != null && r.Description.Contains(search)) ||
-                    (r.HandledBy != null && r.HandledBy.Email!.Contains(search)));
-            }
+            var query = context.Requests.Include(r => r.DeletedBy).AsNoTracking();
 
-            if (status.HasValue)
-            {
-                query = query.Where((r) => r.Status == status);
-            }
+            if (!string.IsNullOrEmpty(effectiveUserId))
+                query = query.Where((r) => r.RequestedById == effectiveUserId);
 
-            if (type.HasValue)
-            {
-                query = query.Where((r) => r.RequestType == type);
-            }
+            if (!string.IsNullOrEmpty(filter.Search))
+                query = query.Where(r =>
+                r.Title.Contains(filter.Search) ||
+                (r.Description != null && r.Description.Contains(filter.Search)) ||
+                    (r.RequestedBy != null && r.RequestedBy.Email != null && r.RequestedBy.Email.Contains(filter.Search)));
 
-            if (!includeDeleted)
-            {
+            if (filter.Status.HasValue)
+                query = query.Where((r) => r.Status == filter.Status);
+
+            if (filter.Type.HasValue)
+                query = query.Where((r) => r.RequestType == filter.Type);
+
+            if (!effectiveIncludeDeleted)
                 query = query.Where((r) => !r.IsDeleted);
-            }
+
+            if (createdFrom.HasValue)
+                query = query.Where((r) => r.CreatedAt >= createdFrom);
+
+            if (createdTo.HasValue)
+                query = query.Where((r) => r.CreatedAt < createdTo);
+
+            if (handledFrom.HasValue)
+                query = query.Where((r) => r.UpdatedAt >= handledFrom && r.Status != Status.Pending);
+
+            if (handledTo.HasValue)
+                query = query.Where((r) => r.UpdatedAt < handledTo && r.Status != Status.Pending);
 
             query = query.OrderByDescending((r) => r.CreatedAt);
 
-            if (take.HasValue)
-            {
-                query = query.Take(take.Value);
-            }
 
-            return await mapper.ProjectToDto(query).ToListAsync();
+            var projected = mapper.ProjectToDto(query);
+
+            return await projected.ToPagedResponseAsync(filter.PageNumber, filter.PageSize);
         }
 
         public async Task<RequestDetailDto> GetRequestById(int requestId)
         {
+            var user = httpContextAccessor.HttpContext?.User;
+            bool isAdminOrManager = user!.IsInRole("Manager") || user.IsInRole("Admin");
+
             var request = await context.Requests
               .AsNoTracking()
-              .Where(r => r.Id == requestId && !r.IsDeleted)
+              .AsSplitQuery()
+              .Where(r => r.Id == requestId && (isAdminOrManager || !r.IsDeleted))
               .Include(r => r.RequestedBy)
               .Include(r => r.HandledBy)
+              .Include(r => r.DeletedBy)
               .Include(r => r.Comments)
                 .ThenInclude(c => c.User)
               .Include(r => r.Attachments)
-              .Include(r => r.AuditLogs)
+              .Include(r => r.AuditLogs.OrderByDescending(a => a.Timestamp))
+                .ThenInclude(a => a.ChangedBy)
               .FirstOrDefaultAsync();
 
             if (request == null)
                 throw new NotFoundException($"Request with id {requestId} not found.");
-
-            var user = httpContextAccessor.HttpContext?.User;
 
             if (!(await authorizationService.AuthorizeAsync(user!, request.RequestedById, "OwnerOrManager")).Succeeded)
                 throw new UnauthorizedException("You do not have permission to access this request.");
@@ -119,6 +150,9 @@
 
             if (request == null)
                 throw new NotFoundException($"Request with id {requestId} not found.");
+
+            if (request.Status == Status.Approved || request.Status == Status.Completed)
+                throw new BadRequestException("Approved or completed requests cannot be updated.");
 
             var user = httpContextAccessor.HttpContext?.User;
             if (!(await authorizationService.AuthorizeAsync(user!, request.RequestedById, "OwnerOrManager")).Succeeded)
@@ -160,6 +194,7 @@
 
             return mapper.MapToDto(request);
         }
+
         public async Task<RequestDto> ApproveRequest(string userId, int requestId) =>
             await UpdateRequestStatus(userId, requestId, Status.Pending, Status.Approved);
 
@@ -178,9 +213,6 @@
             if (request == null)
                 throw new NotFoundException($"Request with id {requestId} not found.");
 
-            if (request.IsDeleted)
-                throw new BadRequestException("Request is already deleted.");
-
             if (request.Status == Status.Approved || request.Status == Status.Completed)
                 throw new BadRequestException("Approved or completed requests cannot be deleted.");
 
@@ -189,10 +221,8 @@
             if (!(await authorizationService.AuthorizeAsync(user!, request.RequestedById, "OwnerOrManager")).Succeeded)
                 throw new UnauthorizedException("You do not have permission to access this request.");
 
-            foreach (var attachment in request.Attachments)
-            {
-                await attachmentService.DeleteAttachmentAsync(userId, attachment.Id);
-            }
+
+            await attachmentService.DeleteAttachmentsForRequestAsync(userId, request);
 
             request.IsDeleted = true;
             request.DeletedAt = DateTime.UtcNow;

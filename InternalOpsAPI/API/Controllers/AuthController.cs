@@ -1,6 +1,7 @@
 ﻿namespace API.Controllers
 {
     using API.DTOs.Auth;
+    using API.DTOs.Users;
     using API.Exceptions;
     using API.Models;
     using API.Services;

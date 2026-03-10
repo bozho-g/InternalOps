@@ -1,4 +1,4 @@
-﻿namespace API.DTOs.Auth
+﻿namespace API.DTOs.Users
 {
     public class UserRolesDto
     {

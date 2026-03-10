@@ -20,6 +20,12 @@
             if (request == null)
                 throw new NotFoundException($"Request with ID {requestId} not found.");
 
+            var user = httpContextAccessor.HttpContext?.User!;
+            var authResult = await authorizationService.AuthorizeAsync(user, request.RequestedById, "OwnerOrManager");
+
+            if (!authResult.Succeeded)
+                throw new UnauthorizedException("You are not authorized to add comment to this request.");
+
             var comment = new RequestComment
             {
                 Content = commentDto.Content,
@@ -40,6 +46,15 @@
                  requestId,
                  NotificationType.CommentAdded
              );
+            }
+            else if (request.HandledById != null && userId != request.HandledById)
+            {
+                await notificationService.SendNotificationAsync(
+                request.RequestedById,
+                $"Requester replied on request #{requestId}",
+                requestId,
+                NotificationType.CommentAdded
+                );
             }
 
             return mapper.MapToDto(comment);

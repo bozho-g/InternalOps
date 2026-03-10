@@ -5,6 +5,6 @@
         public int Id { get; set; }
         public string Content { get; set; } = null!;
         public DateTime CreatedAt { get; set; }
-        public UserDto Author { get; set; } = null!;
+        public UserDto User { get; set; } = null!;
     }
 }

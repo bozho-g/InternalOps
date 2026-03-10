@@ -20,19 +20,13 @@
         public async Task DeleteFileAsync(string fileUrl)
         {
             var uri = new Uri(fileUrl);
-            var blobName = uri.Segments[^1];
+
+            var path = uri.AbsolutePath.TrimStart('/');
+            var blobName = path[(path.IndexOf('/') + 1)..];
 
             var blobClient = _containerClient.GetBlobClient(blobName);
+
             await blobClient.DeleteIfExistsAsync();
-        }
-
-        public async Task<bool> FileExistsAsync(string fileUrl)
-        {
-            var url = new Uri(fileUrl);
-            var blobName = url.Segments[^1];
-
-            var blobClient = _containerClient.GetBlobClient(blobName);
-            return await blobClient.ExistsAsync();
         }
 
         public async Task<string> UploadFileAsync(IFormFile file, string requestId)
