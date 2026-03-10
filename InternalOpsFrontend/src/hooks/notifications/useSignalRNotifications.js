@@ -9,12 +9,13 @@ export function useSignalRNotifications() {
     const queryClient = useQueryClient();
     const { user, accessToken } = useAuthStore();
     const openDropdown = useNotificationStore((s) => s.open);
+    const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
     useEffect(() => {
         if (!user || !accessToken) return;
 
         const connection = new HubConnectionBuilder()
-            .withUrl("/hubs/notifications", {
+            .withUrl(`${baseUrl}/hubs/notifications`, {
                 accessTokenFactory: () => accessToken
             })
             .withAutomaticReconnect()
