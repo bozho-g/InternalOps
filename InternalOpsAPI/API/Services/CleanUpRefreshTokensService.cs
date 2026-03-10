@@ -18,7 +18,15 @@
 
             while (await timer.WaitForNextTickAsync(stoppingToken))
             {
-                await RunCleanupAsync(stoppingToken);
+                try
+                {
+                    await RunCleanupAsync(stoppingToken);
+
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Cleanup service failed");
+                }
             }
 
             logger.LogInformation("Refresh Token Cleanup Stopped");
