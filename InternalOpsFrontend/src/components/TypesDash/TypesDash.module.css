@@ -1,0 +1,60 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+    color: var(--foreground);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    padding: 1rem;
+}
+
+.container:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    h3 {
+        font-size: 1.2rem;
+    }
+
+    p {
+        font-size: 1.1rem;
+    }
+}
+
+.body {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.typeCard {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    color: var(--foreground);
+    transition: background 0.2s ease;
+    border-radius: 0.5rem;
+    padding: 0.3rem;
+}
+
+.typeCard:hover {
+    background: rgba(128, 128, 128, 0.1);
+}
+
+.typeCard svg {
+    width: 3rem;
+    height: 3rem;
+    padding: 0.5rem;
+    background: rgba(128, 128, 128, 0.08);
+    border-radius: 50%;
+    margin-right: 0.5rem;
+}

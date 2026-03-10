@@ -5,9 +5,15 @@ export function useRequests(filters = {}) {
     return useQuery({
         queryKey: ["requests", filters],
         queryFn: () => axiosInstance
-            .get("/requests", { params: { take: 10, ...filters } })
+            .get("/requests", { params: filters })
             .then(res => res.data),
         placeholderData: (prev) => prev,
-        staleTime: 1000 * 30
+        retry: (failureCount, error) => {
+            if (error?.response?.status === 400) {
+                return false;
+            }
+
+            return failureCount < 2;
+        }
     });
 }

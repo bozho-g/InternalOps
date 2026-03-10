@@ -24,7 +24,7 @@
 }
 
 .primary:hover:not(:disabled) {
-    filter: brightness(130%);
+    background-color: color-mix(in oklab, var(--primary)85%, transparent);
 }
 
 .outline {
@@ -34,8 +34,7 @@
 }
 
 .outline:hover:not(:disabled) {
-    color: var(--accent-foreground);
-    background-color: var(--accent);
+    background: rgba(255, 255, 255, 0.10);
 }
 
 .danger {
@@ -65,7 +64,7 @@
     cursor: pointer;
     transition: all 0.2s;
     background-color: var(--secondary);
-    color: var(--accent-foreground);
+    color: var(--foreground)
 }
 
 .secondary:hover:not(:disabled) {

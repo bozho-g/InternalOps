@@ -115,3 +115,14 @@
     overflow-y: auto;
     max-height: calc(90vh - 80px);
 }
+
+.actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.description {
+    resize: vertical;
+    min-height: 100px;
+    max-height: 250px;
+}

@@ -1,22 +1,24 @@
 import { useState } from "react";
-import { Button } from "../shared/Button/Button";
-import { Modal } from "../shared/Modal/Modal";
-import styles from "./NewRequestModal.module.css";
+import { Button } from "../Button/Button";
+import { Modal } from "./Modal/Modal";
+import styles from "./Modal/Modal.module.css";
 import { toast } from "sonner";
-import { useRequestTypes } from "../../hooks/requests/useRequestTypes";
 import { uploadAttachment, validatefiles } from "../../utils/attachments";
 import { useCreateRequest } from "../../hooks/requests/useCreateRequest";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useRequestTypes } from "../../hooks/useEnums";
+import { useModalStore } from "../../stores/modalStore";
 
-export function NewRequestModal({ isOpen, onClose }) {
+export function NewRequestModal() {
     const [errors, setErrors] = useState([]);
     const { data: requestTypes = [], isLoading } = useRequestTypes();
     const { mutateAsync: createRequest, isPending } = useCreateRequest();
     let navigate = useNavigate();
+    const closeModal = useModalStore((s) => s.closeModal);
 
     function handleClose() {
         setErrors([]);
-        onClose();
+        closeModal();
     }
 
     async function handleSubmit(e) {
@@ -43,7 +45,7 @@ export function NewRequestModal({ isOpen, onClose }) {
             newErrors.push("Description must be at most 500 characters long.");
         }
 
-        if (!requestType || !requestTypes.includes(requestType)) {
+        if (!requestType || !requestTypes.some(type => type.value === requestType)) {
             newErrors.push("Please select a valid request type.");
         }
 
@@ -82,7 +84,7 @@ export function NewRequestModal({ isOpen, onClose }) {
     }
 
     return (
-        <Modal title="New Request" isOpen={isOpen} onClose={handleClose}>
+        <Modal title="New Request" isOpen onClose={handleClose}>
             <form onSubmit={handleSubmit}>
                 <div className="inputBox">
                     <label htmlFor="title">Request Title *</label>
@@ -100,7 +102,7 @@ export function NewRequestModal({ isOpen, onClose }) {
                         <option value="">Select a type</option>
                         {isLoading && <option disabled>Loading...</option>}
                         {!isLoading && requestTypes.map((type, index) => (
-                            <option key={index} value={type}>{type}</option>
+                            <option key={index} value={type.value}>{type.label}</option>
                         ))}
                     </select>
                 </div>

@@ -3,8 +3,8 @@ import axiosInstance from "../../api/axiosInstance";
 
 export function useChangePasswordMutation() {
     return useMutation({
-        mutationFn: (passwordData) => {
-            return axiosInstance.post("/auth/change-password", passwordData);
+        mutationFn: async (passwordData) => {
+            return await axiosInstance.post("/auth/change-password", passwordData);
         },
     });
 }

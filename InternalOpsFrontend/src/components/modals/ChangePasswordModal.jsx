@@ -1,16 +1,19 @@
 import { useState } from "react";
-import { Button } from "./shared/Button/Button";
-import { Modal } from "./shared/Modal/Modal";
-import { useChangePasswordMutation } from "../hooks/auth/useChangePasswordMutation";
+import { Button } from "../Button/Button";
+import { Modal } from "./Modal/Modal";
+import { useChangePasswordMutation } from "../../hooks/auth/useChangePasswordMutation";
 import { toast } from "sonner";
+import { useModalStore } from "../../stores/modalStore";
 
-export function ChangePasswordModal({ isOpen, onClose }) {
+export function ChangePasswordModal() {
     const [errors, setErrors] = useState([]);
     const { mutateAsync: changePassword, isPending } = useChangePasswordMutation();
 
+    const closeModal = useModalStore((s) => s.closeModal);
+
     function handleClose() {
         setErrors([]);
-        onClose();
+        closeModal();
     }
 
     async function handleSubmit(e) {
@@ -56,7 +59,7 @@ export function ChangePasswordModal({ isOpen, onClose }) {
     }
 
     return (
-        <Modal title="Change Password" isOpen={isOpen} onClose={handleClose}>
+        <Modal title="Change Password" isOpen onClose={handleClose}>
             <form onSubmit={handleSubmit}>
                 <div className="inputBox">
                     <label htmlFor="currentPassword">Current Password</label>

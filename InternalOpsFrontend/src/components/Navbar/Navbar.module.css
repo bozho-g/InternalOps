@@ -25,6 +25,7 @@
 .links {
     margin: 0 auto 0 1.5rem;
     display: flex;
+    flex-wrap: wrap;
     gap: 2rem;
 }
 
@@ -49,14 +50,21 @@
     color: var(--accent);
 }
 
-.actions *:hover {
-    color: var(--foreground);
-}
-
 .iconWrapper {
     position: relative;
     display: flex;
     align-items: center;
+}
+
+.unreadDot {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--destructive);
+    pointer-events: none;
 }
 
 @media screen and (max-width: 768px) {
@@ -67,5 +75,6 @@
 
     .links {
         margin: 0;
+        justify-content: center;
     }
 }

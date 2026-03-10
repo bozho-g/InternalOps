@@ -1,0 +1,61 @@
+.badge {
+    padding: 0.25rem 0.6rem;
+    border-radius: var(--radius);
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.positive {
+    background: var(--primary);
+    color: var(--primary-foreground);
+}
+
+.neutral {
+    background: var(--secondary);
+    color: var(--secondary-foreground);
+}
+
+.destructive {
+    background: var(--destructive);
+    color: var(--destructive-foreground);
+}
+
+.userId {
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
+}
+
+.timestamp {
+    white-space: nowrap;
+    font-size: 0.8rem;
+    color: var(--muted-foreground);
+}
+
+.link {
+    color: var(--secondary-foreground);
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.expand {
+    cursor: pointer;
+}
+
+.changesBox {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.old {
+    color: var(--destructive);
+    margin: 0 6px;
+}
+
+.new {
+    color: var(--chart-3);
+    margin-left: 6px;
+}

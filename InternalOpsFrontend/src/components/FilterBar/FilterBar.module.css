@@ -1,14 +1,12 @@
 .filterBar {
     display: flex;
+    flex-direction: column;
     gap: 1rem;
-    align-items: center;
     padding: 0.75rem;
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 8px;
     margin-bottom: 1.5rem;
-    flex-wrap: wrap;
-    max-width: max-content;
 }
 
 .searchBox {
@@ -49,10 +47,10 @@
     display: flex;
     gap: 0.75rem;
     flex-wrap: wrap;
+    align-items: end;
 }
 
 .filterSelect {
-    padding: 0.5rem 0.75rem;
     background: var(--background);
     color: var(--foreground);
     border: 1px solid var(--border);
@@ -68,6 +66,137 @@
 }
 
 .filterSelect:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(229, 57, 53, 0.1);
+}
+
+.checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    align-self: center;
+
+    input[type="checkbox"] {
+        accent-color: var(--primary);
+    }
+}
+
+.advancedToggle {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--background);
+    color: var(--foreground);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.advancedToggle:hover {
+    border-color: var(--primary);
+    background: var(--muted);
+}
+
+.advancedFilters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 0.75rem;
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    animation: slideDown 0.2s ease;
+}
+
+.resetFiltersBtn {
+    background-color: var(--background);
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dateFilters {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.dateGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.dateGroup label {
+    font-size: 0.85rem;
+    color: var(--muted-foreground);
+    font-weight: 500;
+}
+
+.inputGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.inputGroup label {
+    font-size: 0.85rem;
+    color: var(--muted-foreground);
+    font-weight: 500;
+}
+
+.numberInput {
+    padding: 0.5rem 0.75rem;
+    background: var(--background);
+    color: var(--foreground);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+    outline: none;
+    min-width: 150px;
+}
+
+.numberInput:hover {
+    border-color: var(--primary);
+}
+
+.numberInput:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(229, 57, 53, 0.1);
+}
+
+.dateInput {
+    padding: 0.5rem 0.75rem;
+    background: var(--card);
+    color: var(--foreground);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    outline: none;
+    color-scheme: dark;
+}
+
+.dateInput:hover {
+    border-color: var(--primary);
+}
+
+.dateInput:focus {
     border-color: var(--primary);
     box-shadow: 0 0 0 2px rgba(229, 57, 53, 0.1);
 }
@@ -88,5 +217,17 @@
 
     .filterSelect {
         flex: 1;
+    }
+
+    .checkbox {
+        padding: 0 0.5rem;
+    }
+
+    .advancedFilters {
+        flex-direction: column;
+    }
+
+    .dateFilters {
+        flex-direction: column;
     }
 }

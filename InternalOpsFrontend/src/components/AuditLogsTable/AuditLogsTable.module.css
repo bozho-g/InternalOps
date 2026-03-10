@@ -1,0 +1,56 @@
+.container {
+    border-radius: var(--radius);
+    overflow-x: auto;
+    border: 1px solid var(--border);
+}
+
+.title {
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.noData {
+    text-align: center;
+    padding: 1rem;
+    color: var(--muted-foreground);
+}
+
+thead {
+    background: var(--muted);
+}
+
+th {
+    text-align: left;
+    padding: 0.75rem;
+    font-weight: 500;
+    color: var(--muted-foreground);
+    border-bottom: 1px solid var(--border);
+}
+
+td {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--border);
+}
+
+tbody tr:nth-child(even) {
+    background: var(--muted);
+}
+
+tbody tr:nth-child(odd) {
+    background: var(--background);
+}
+
+tbody tr {
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+tbody tr:hover {
+    background-color: color-mix(in srgb, var(--muted) 80%, var(--foreground));
+}
