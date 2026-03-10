@@ -2,11 +2,11 @@
     "routes": [
         {
             "route": "/api/*",
-            "rewrite": "https://internalopsbozho.azurewebsites.net/api/*"
+            "rewrite": "https://internalopsbozho.azurewebsites.net/api/:splat"
         },
         {
             "route": "/hubs/*",
-            "rewrite": "https://internalopsbozho.azurewebsites.net/hubs/*"
+            "rewrite": "https://internalopsbozho.azurewebsites.net/hubs/:splat"
         }
     ],
     "navigationFallback": {
