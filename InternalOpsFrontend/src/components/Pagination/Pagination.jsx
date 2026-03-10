@@ -9,7 +9,7 @@ export default function Pagination({ pageNumber, pageSize, totalPages, hasNextPa
         <div className={styles.pagination}>
             <div className={styles.pageSizeContainer}>
                 <label htmlFor="pageSizeSelect">
-                    Rows per page
+                    Items per page
                 </label>
                 <select name='pageSizeSelect' id="pageSizeSelect" value={pageSize} onChange={(e) => {
                     updateFilter('pageSize', e.target.value);
