@@ -10,6 +10,12 @@ export default defineConfig({
         target: 'https://localhost:7210',
         secure: false,
       },
+      '/hubs': {
+        target: 'https://localhost:7210',
+        changeOrigin: true,
+        secure: false,
+        ws: true
+      }
     },
   },
   resolve: {

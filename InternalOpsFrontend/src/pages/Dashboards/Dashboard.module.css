@@ -19,6 +19,17 @@
     gap: 1rem;
 }
 
+.typesContainer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2rem;
+
+    &>* {
+        flex: 1;
+    }
+}
+
 .requestsWrapper {
     flex: 1;
     display: flex;

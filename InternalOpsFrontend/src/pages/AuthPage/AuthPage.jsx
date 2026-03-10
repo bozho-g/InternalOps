@@ -1,6 +1,6 @@
 import { useState } from "react";
 import styles from './AuthPage.module.css';
-import { Button } from '@/components/shared/Button/Button';
+import { Button } from '@/components/Button/Button';
 import { useNavigate } from "react-router-dom";
 import { useLoginMutation } from "@/hooks/auth/useLoginMutation";
 import { useRegisterMutation } from "@/hooks/auth/useRegisterMutation";
@@ -86,7 +86,7 @@ export function AuthPage({ isSigningIn = true }) {
                         )
                     }
 
-                    <Button variant="secondary" disabled={isLoading} type="submit">{isLoading ? "Loading..." : mode ? "Sign In" : "Sign Up"}</Button>
+                    <Button disabled={isLoading} type="submit">{isLoading ? "Loading..." : mode ? "Sign In" : "Sign Up"}</Button>
 
                     <div className={styles.formFooter}>
                         {mode ? "Don't have an account? " : "Already have an account? "}
