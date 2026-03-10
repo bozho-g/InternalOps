@@ -82,13 +82,17 @@
 
         private void AppendRefreshCookie(string token)
         {
-            Response.Cookies.Append("refreshToken", token, new CookieOptions
+            var options = new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.None,
                 Expires = DateTimeOffset.UtcNow.AddDays(7)
-            });
+            };
+
+            options.Extensions.Add("Partitioned");
+
+            Response.Cookies.Append("refreshToken", token, options);
         }
 
         private static object AuthResponse(AuthResult r) => new
