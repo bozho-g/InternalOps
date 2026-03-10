@@ -7,16 +7,17 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://localhost:7210',
-        secure: false,
+        target: 'https://internalopsbozho.azurewebsites.net',
+        changeOrigin: true,
+        secure: false
       },
       '/hubs': {
-        target: 'https://localhost:7210',
+        target: 'https://internalopsbozho.azurewebsites.net',
         changeOrigin: true,
-        secure: false,
-        ws: true
+        ws: true,
+        secure: false
       }
-    },
+    }
   },
   resolve: {
     alias: {

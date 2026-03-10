@@ -1,0 +1,18 @@
+{
+    "routes": [
+        {
+            "route": "/api/*",
+            "rewrite": "https://internalopsbozho.azurewebsites.net/api/*"
+        },
+        {
+            "route": "/hubs/*",
+            "rewrite": "https://internalopsbozho.azurewebsites.net/hubs/*"
+        }
+    ],
+    "navigationFallback": {
+        "rewrite": "/index.html",
+        "exclude": [
+            "/api/*"
+        ]
+    }
+}
